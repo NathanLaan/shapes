@@ -1,23 +1,24 @@
 <html>
 <body>
 
-<canvas id="canvas" width="500" height="500"></canvas>
+<canvas id="shapesCanvas" width="300" height="400"></canvas>
 <canvas id="c" width="100" height="100"></canvas>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<!--
 <script type="text/javascript">
 //http://jsfiddle.net/paul/XQpzU/2/light/
 // requestAnim shim layer by Paul Irish
-    window.requestAnimFrame = (function(){
-      return  window.requestAnimationFrame       || 
-              window.webkitRequestAnimationFrame || 
-              window.mozRequestAnimationFrame    || 
-              window.oRequestAnimationFrame      || 
-              window.msRequestAnimationFrame     || 
-              function(/* function */ callback, /* DOMElement */ element){
-                window.setTimeout(callback, 1000 / 60);
-              };
-    })();
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       || 
+          window.webkitRequestAnimationFrame || 
+          window.mozRequestAnimationFrame    || 
+          window.oRequestAnimationFrame      || 
+          window.msRequestAnimationFrame     || 
+          function(/* function */ callback, /* DOMElement */ element){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
 // example code from mr doob : http://mrdoob.com/lab/javascript/requestanimationframe/
 var canvas, context;
 init();
@@ -40,10 +41,8 @@ function draw() {
     var time = new Date().getTime() * 0.002;
     var x = Math.sin( time ) * 96 + 128;
     var y = Math.cos( time * 0.9 ) * 96 + 128;
-
     context.fillStyle = 'rgb(245,245,245)';
     context.fillRect( 0, 0, 255, 255 );
-
     context.fillStyle = 'rgb(255,0,0)';
     context.beginPath();
     context.arc( x, y, 10, 0, Math.PI * 2, true );
@@ -51,7 +50,10 @@ function draw() {
     context.fill();
 }
 </script>
+-->
+
 <script type="text/javascript">
+
 
 function KeyData(){
     this.keyDownU = false;
@@ -60,22 +62,51 @@ function KeyData(){
     this.keyDownR = false;
 }
 
+
+function Shape(ix,iy){
+    this.x=ix;
+    this.y=iy;
+    this.w=10;
+    this.h=10;
+    this.v=1;
+    this.a=270;
+    this.backgroundColor = "white";
+    this.borderColor = "black";
+}
+Shape.prototype.collide = function(px,py){
+    //TODO: collision detection
+}
+Shape.prototype.draw = function(c){
+    c.fillStyle = this.backgroundColor;
+    c.strokeStyle = this.borderColor;
+    c.lineWidth = 1;
+    c.fillRect(this.x, this.y, this.w, this.h);
+    c.strokeRect(this.x, this.y, this.w, this.h);
+}
+
+
 function Engine(){
-    this.frame = 0;   
+    this.frame = 0;
+    this.player = new Shape(0,0);
+    this.keyData = new KeyData();
 }
 Engine.prototype.advance = function(){
     this.frame++;
 }
 
-var keyData = new KeyData();
+
+
 var engine = new Engine();
+var shapeArray = new Array();
+var testShape;
+
 
 $(document).ready(function(){
 	//Canvas stuff
-	var canvas = $("#canvas")[0];
-	var ctx = canvas.getContext("2d");
-	var w = $("#canvas").width();
-	var h = $("#canvas").height();
+	var canvas = $("#shapesCanvas")[0];
+	var context = canvas.getContext("2d");
+	var w = $("#shapesCanvas").width();
+	var h = $("#shapesCanvas").height();
 	
 	//Lets save the cell width in a variable for easy control
 	var cellWidth = 10;
@@ -86,8 +117,16 @@ $(document).ready(function(){
 	//Lets create the snake now
 	var snake_array; //an array of cells to make up the snake
 	
-	function init()
-	{
+	function init() {
+    
+    console.log("w: " + w);
+    console.log("h: " + h);
+    
+        engine.player.x = Math.round(w/2);
+        engine.player.y = Math.round(h/2);
+        engine.player.backgroundColor = "#0f0";
+        engine.player.borderColor = "#000";
+        
 		d = "right"; //default direction
 		create_snake();
 		create_food(); //Now we can see the food particle
@@ -123,6 +162,9 @@ $(document).ready(function(){
 		};
 		//This will create a cell with x/y between 0-44
 		//Because there are 45(450/10) positions accross the rows and columns
+        
+        testShape = new Shape(Math.round(Math.random()*(w-cellWidth)/cellWidth),Math.round(Math.random()*(h-cellWidth)/cellWidth));
+        
 	}
 	
 	//Lets paint the snake now
@@ -130,10 +172,10 @@ $(document).ready(function(){
 	{
 		//To avoid the snake trail we need to paint the BG on every frame
 		//Lets paint the canvas now
-		ctx.fillStyle = "white";
-		ctx.fillRect(0, 0, w, h);
-		ctx.strokeStyle = "black";
-		ctx.strokeRect(0, 0, w, h);
+		context.fillStyle = "lightgrey";
+		context.fillRect(0, 0, w, h);
+		context.strokeStyle = "black";
+		context.strokeRect(0, 0, w, h);
 		
 		//The movement code for the snake to come here.
 		//The logic is simple
@@ -186,20 +228,23 @@ $(document).ready(function(){
 			//Lets paint 10px wide cells
 			drawCell(c.x, c.y);
 		}
+        
+        testShape.draw(context);
+        engine.player.draw(context);
 		
 		//Lets paint the food
 		drawCell(food.x, food.y);
 		//Lets paint the score
 		var score_text = "Score: " + score;
-		ctx.fillText(score_text, 5, h-5);
+		context.fillText(score_text, 5, h-5);
 	}
 	
 	//Lets first create a generic function to paint cells
 	function drawCell(x, y) {
-		ctx.fillStyle = "blue";
-		ctx.fillRect(x*cellWidth, y*cellWidth, cellWidth, cellWidth);
-		ctx.strokeStyle = "white";
-		ctx.strokeRect(x*cellWidth, y*cellWidth, cellWidth, cellWidth);
+		context.fillStyle = "blue";
+		context.fillRect(x*cellWidth, y*cellWidth, cellWidth, cellWidth);
+		context.strokeStyle = "white";
+		context.strokeRect(x*cellWidth, y*cellWidth, cellWidth, cellWidth);
 	}
 	
 	function check_collision(x, y, array) {
@@ -217,16 +262,16 @@ $(document).ready(function(){
 		var key = e.which;
 		//We will add another clause to prevent reverse gear
 		if(key == "37" && d != "right") {
-            keyData.keyDownL = true;
+            engine.keyData.keyDownL = true;
             d = "left";
         } else if(key == "38" && d != "down") {
-            keyData.keyDownU = true;
+            engine.keyData.keyDownU = true;
             d = "up";
         } else if(key == "39" && d != "left") {
-            keyData.keyDownR = true;
+            engine.keyData.keyDownR = true;
             d = "right";
         } else if(key == "40" && d != "up") {
-            keyData.keyDownD = true;
+            engine.keyData.keyDownD = true;
             d = "down";
         }
 		//The snake is now keyboard controllable
