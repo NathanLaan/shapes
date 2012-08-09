@@ -84,21 +84,43 @@ Shape.prototype.draw = function(c){
     c.strokeRect(this.x, this.y, this.w, this.h);
 }
 
-
-function Engine(){
+//
+// CLASS: Engine
+//
+function Engine(w,h){
+    this.score = 0;
     this.frame = 0;
-    this.player = new Shape(0,0);
+    this.canvasW = w;
+    this.canvasH = h;
     this.keyData = new KeyData();
+    this.player = new Shape(0,0);
+    this.testShape = new Shape(0,0);
+    this.shapeArray = new Array();
 }
 Engine.prototype.advance = function(){
     this.frame++;
+    
+    if(this.testShape.y < this.canvasH + 1){
+        this.testShape.y += this.testShape.v;
+    }else{
+        this.init();
+    }
+}
+//Reset the engine to starting conditions
+Engine.prototype.init = function(){
+    this.frame = 0;
+    this.player.x = Math.round(this.canvasW/2);
+    this.player.y = Math.round(this.canvasH/2);
+    this.player.backgroundColor = "#0f0";
+    this.player.borderColor = "#000";
+    this.testShape = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
+    //this.testShape.v = Math.round(Math.random()*10);
+    this.testShape.v = 10;
 }
 
 
+var engine;
 
-var engine = new Engine();
-var shapeArray = new Array();
-var testShape;
 
 
 $(document).ready(function(){
@@ -107,38 +129,26 @@ $(document).ready(function(){
 	var context = canvas.getContext("2d");
 	var w = $("#shapesCanvas").width();
 	var h = $("#shapesCanvas").height();
-	
-	//Lets save the cell width in a variable for easy control
-	var cellWidth = 10;
-	var d;
-	var food;
-	var score;
+    
+    engine = new Engine(w,h);
 	
 	//Lets create the snake now
 	var snake_array; //an array of cells to make up the snake
 	
 	function init() {
-    
-    console.log("w: " + w);
-    console.log("h: " + h);
-    
-        engine.player.x = Math.round(w/2);
-        engine.player.y = Math.round(h/2);
-        engine.player.backgroundColor = "#0f0";
-        engine.player.borderColor = "#000";
-        
-		d = "right"; //default direction
-		create_snake();
-		create_food(); //Now we can see the food particle
+        engine.init(w,h);   
+		//d = "right"; //default direction
+		//create_snake();
+		//create_food(); //Now we can see the food particle
 		//finally lets display the score
-		score = 0;
+		//score = 0;
 		
 		//Lets move the snake now using a timer which will trigger the paint function
 		//every 60ms
-		if(typeof game_loop != "undefined"){
-            clearInterval(game_loop);
+		if(typeof engineLoop != "undefined"){
+            clearInterval(engineLoop);
         }
-		game_loop = setInterval(paint, 60);
+		engineLoop = setInterval(draw, 60);
 	}
 	init();
 	
@@ -154,22 +164,20 @@ $(document).ready(function(){
 	}
 	
 	//Lets create the food now
-	function create_food()
-	{
+	function create_food() {
 		food = {
 			x: Math.round(Math.random()*(w-cellWidth)/cellWidth), 
 			y: Math.round(Math.random()*(h-cellWidth)/cellWidth), 
 		};
 		//This will create a cell with x/y between 0-44
 		//Because there are 45(450/10) positions accross the rows and columns
-        
-        testShape = new Shape(Math.round(Math.random()*(w-cellWidth)/cellWidth),Math.round(Math.random()*(h-cellWidth)/cellWidth));
-        
 	}
 	
 	//Lets paint the snake now
-	function paint()
+	function draw()
 	{
+        engine.advance();
+        
 		//To avoid the snake trail we need to paint the BG on every frame
 		//Lets paint the canvas now
 		context.fillStyle = "lightgrey";
@@ -180,62 +188,63 @@ $(document).ready(function(){
 		//The movement code for the snake to come here.
 		//The logic is simple
 		//Pop out the tail cell and place it infront of the head cell
-		var nx = snake_array[0].x;
-		var ny = snake_array[0].y;
+		//var nx = snake_array[0].x;
+		//var ny = snake_array[0].y;
 		//These were the position of the head cell.
 		//We will increment it to get the new head position
 		//Lets add proper direction based movement now
-		if(d == "right") nx++;
-		else if(d == "left") nx--;
-		else if(d == "up") ny--;
-		else if(d == "down") ny++;
+		//if(d == "right") nx++;
+		//else if(d == "left") nx--;
+		//else if(d == "up") ny--;
+		//else if(d == "down") ny++;
 		
 		//Lets add the game over clauses now
 		//This will restart the game if the snake hits the wall
 		//Lets add the code for body collision
 		//Now if the head of the snake bumps into its body, the game will restart
-		if(nx == -1 || nx == w/cellWidth || ny == -1 || ny == h/cellWidth || check_collision(nx, ny, snake_array))
-		{
+		//if(nx == -1 || nx == w/cellWidth || ny == -1 || ny == h/cellWidth || check_collision(nx, ny, snake_array))
+		//{
 			//restart game
-			init();
+		//	init();
 			//Lets organize the code a bit now.
-			return;
-		}
+		//	return;
+		//}
 		
 		//Lets write the code to make the snake eat the food
 		//The logic is simple
 		//If the new head position matches with that of the food,
 		//Create a new head instead of moving the tail
-		if(nx == food.x && ny == food.y)
-		{
-			var tail = {x: nx, y: ny};
-			score++;
+		//if(nx == food.x && ny == food.y)
+		//{
+		//	var tail = {x: nx, y: ny};
+		//	score++;
 			//Create new food
-			create_food();
-		}
-		else
-		{
-			var tail = snake_array.pop(); //pops out the last cell
-			tail.x = nx; tail.y = ny;
-		}
+		//	create_food();
+		//}
+		//else
+		//{
+		//	var tail = snake_array.pop(); //pops out the last cell
+		//	tail.x = nx; tail.y = ny;
+		//}
 		//The snake can now eat the food.
 		
-		snake_array.unshift(tail); //puts back the tail as the first cell
+		//snake_array.unshift(tail); //puts back the tail as the first cell
 		
-		for(var i = 0; i < snake_array.length; i++)
-		{
-			var c = snake_array[i];
+		//for(var i = 0; i < snake_array.length; i++)
+		//{
+		//	var c = snake_array[i];
 			//Lets paint 10px wide cells
-			drawCell(c.x, c.y);
-		}
+		//	drawCell(c.x, c.y);
+		//}
         
-        testShape.draw(context);
+        engine.testShape.draw(context);
         engine.player.draw(context);
 		
 		//Lets paint the food
-		drawCell(food.x, food.y);
+		//drawCell(food.x, food.y);
 		//Lets paint the score
-		var score_text = "Score: " + score;
+		//var score_text = "Score: " + score;
+		var score_text = "Score: " + engine.frame;
 		context.fillText(score_text, 5, h-5);
 	}
 	
