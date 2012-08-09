@@ -100,10 +100,24 @@ function Engine(w,h){
 Engine.prototype.advance = function(){
     this.frame++;
     
+    //move player
+    if(this.keyData.keyDownU && this.player.y > 1){
+        this.player.y -= 5;
+    }
+    if(this.keyData.keyDownD && this.player.y < this.canvasH-5){
+        this.player.y += 5;
+    }
+    if(this.keyData.keyDownL && this.player.x > 1){
+        this.player.x -= 5;
+    }
+    if(this.keyData.keyDownR && this.player.x < this.canvasW-5){
+        this.player.x += 5;
+    }
+    
     if(this.testShape.y < this.canvasH + 1){
         this.testShape.y += this.testShape.v;
     }else{
-        this.init();
+        this.initTestShape();
     }
 }
 //Reset the engine to starting conditions
@@ -113,9 +127,12 @@ Engine.prototype.init = function(){
     this.player.y = Math.round(this.canvasH/2);
     this.player.backgroundColor = "#0f0";
     this.player.borderColor = "#000";
+    this.initTestShape();
+}
+Engine.prototype.initTestShape = function(){
     this.testShape = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
     //this.testShape.v = Math.round(Math.random()*10);
-    this.testShape.v = 10;
+    this.testShape.v = 5;
 }
 
 
@@ -148,7 +165,7 @@ $(document).ready(function(){
 		if(typeof engineLoop != "undefined"){
             clearInterval(engineLoop);
         }
-		engineLoop = setInterval(draw, 60);
+		engineLoop = setInterval(draw, 30);
 	}
 	init();
 	
@@ -244,7 +261,13 @@ $(document).ready(function(){
 		//drawCell(food.x, food.y);
 		//Lets paint the score
 		//var score_text = "Score: " + score;
-		var score_text = "Score: " + engine.frame;
+        
+		var score_text = "Score: " + engine.frame
+            + " "
+            + (engine.keyData.keyDownU ? "U" : "")
+            + (engine.keyData.keyDownD ? "D" : "")
+            + (engine.keyData.keyDownL ? "L" : "")
+            + (engine.keyData.keyDownR ? "R" : "");
 		context.fillText(score_text, 5, h-5);
 	}
 	
@@ -269,21 +292,27 @@ $(document).ready(function(){
 	//Lets add the keyboard controls now
 	$(document).keydown(function(e){
 		var key = e.which;
-		//We will add another clause to prevent reverse gear
-		if(key == "37" && d != "right") {
+		if(key == "37") {
             engine.keyData.keyDownL = true;
-            d = "left";
-        } else if(key == "38" && d != "down") {
+        } else if(key == "38") {
             engine.keyData.keyDownU = true;
-            d = "up";
-        } else if(key == "39" && d != "left") {
+        } else if(key == "39") {
             engine.keyData.keyDownR = true;
-            d = "right";
-        } else if(key == "40" && d != "up") {
+        } else if(key == "40") {
             engine.keyData.keyDownD = true;
-            d = "down";
         }
-		//The snake is now keyboard controllable
+	})
+	$(document).keyup(function(e){
+		var key = e.which;
+		if(key == "37") {
+            engine.keyData.keyDownL = false;
+        } else if(key == "38") {
+            engine.keyData.keyDownU = false;
+        } else if(key == "39") {
+            engine.keyData.keyDownR = false;
+        } else if(key == "40") {
+            engine.keyData.keyDownD = false;
+        }
 	})
 	
 	
