@@ -73,8 +73,24 @@ function Shape(ix,iy){
     this.backgroundColor = "white";
     this.borderColor = "black";
 }
-Shape.prototype.collide = function(px,py){
-    //TODO: collision detection
+Shape.prototype.collide = function(shape){
+    //http://www.gamedev.net/page/resources/_/technical/game-programming/collision-detection-r735
+    var offset = 1;
+    var l1 = this.x + offset;
+    var l2 = shape.x + offset;
+    var r1 = l1 + this.w;
+    var r2 = l2 + shape.w;
+    
+    var t1 = this.y + offset;
+    var t2 = shape.y + offset;
+    var b1 = t1 + this.h;
+    var b2 = t2 + shape.h;
+    
+    if(b1 < t2) return false;
+    if(t1 > b2) return false;
+    if(r1 < l2) return false;
+    if(l1 > r2) return false;
+    return true;
 }
 Shape.prototype.draw = function(c){
     c.fillStyle = this.backgroundColor;
@@ -96,6 +112,7 @@ function Engine(w,h){
     this.player = new Shape(0,0);
     this.testShape = new Shape(0,0);
     this.shapeArray = new Array();
+    this.isGameOver = false;
 }
 Engine.prototype.advance = function(){
     this.frame++;
@@ -119,9 +136,14 @@ Engine.prototype.advance = function(){
     }else{
         this.initTestShape();
     }
+    
+    if(this.player.collide(this.testShape)){
+        this.isGameOver = true;
+    }
 }
 //Reset the engine to starting conditions
 Engine.prototype.init = function(){
+    this.isGameOver = false;
     this.frame = 0;
     this.player.x = Math.round(this.canvasW/2);
     this.player.y = Math.round(this.canvasH/2);
@@ -136,7 +158,6 @@ Engine.prototype.initTestShape = function(){
 }
 
 
-var engine;
 
 
 
@@ -146,22 +167,12 @@ $(document).ready(function(){
 	var context = canvas.getContext("2d");
 	var w = $("#shapesCanvas").width();
 	var h = $("#shapesCanvas").height();
+    var engine;
     
     engine = new Engine(w,h);
 	
-	//Lets create the snake now
-	var snake_array; //an array of cells to make up the snake
-	
 	function init() {
-        engine.init(w,h);   
-		//d = "right"; //default direction
-		//create_snake();
-		//create_food(); //Now we can see the food particle
-		//finally lets display the score
-		//score = 0;
-		
-		//Lets move the snake now using a timer which will trigger the paint function
-		//every 60ms
+        engine.init();
 		if(typeof engineLoop != "undefined"){
             clearInterval(engineLoop);
         }
@@ -169,114 +180,32 @@ $(document).ready(function(){
 	}
 	init();
 	
-	function create_snake()
-	{
-		var length = 5; //Length of the snake
-		snake_array = []; //Empty array to start with
-		for(var i = length-1; i>=0; i--)
-		{
-			//This will create a horizontal snake starting from the top left
-			snake_array.push({x: i, y:0});
-		}
-	}
-	
-	//Lets create the food now
-	function create_food() {
-		food = {
-			x: Math.round(Math.random()*(w-cellWidth)/cellWidth), 
-			y: Math.round(Math.random()*(h-cellWidth)/cellWidth), 
-		};
-		//This will create a cell with x/y between 0-44
-		//Because there are 45(450/10) positions accross the rows and columns
-	}
-	
 	//Lets paint the snake now
 	function draw()
 	{
-        engine.advance();
-        
-		//To avoid the snake trail we need to paint the BG on every frame
-		//Lets paint the canvas now
-		context.fillStyle = "lightgrey";
-		context.fillRect(0, 0, w, h);
-		context.strokeStyle = "black";
-		context.strokeRect(0, 0, w, h);
-		
-		//The movement code for the snake to come here.
-		//The logic is simple
-		//Pop out the tail cell and place it infront of the head cell
-		//var nx = snake_array[0].x;
-		//var ny = snake_array[0].y;
-		//These were the position of the head cell.
-		//We will increment it to get the new head position
-		//Lets add proper direction based movement now
-		//if(d == "right") nx++;
-		//else if(d == "left") nx--;
-		//else if(d == "up") ny--;
-		//else if(d == "down") ny++;
-		
-		//Lets add the game over clauses now
-		//This will restart the game if the snake hits the wall
-		//Lets add the code for body collision
-		//Now if the head of the snake bumps into its body, the game will restart
-		//if(nx == -1 || nx == w/cellWidth || ny == -1 || ny == h/cellWidth || check_collision(nx, ny, snake_array))
-		//{
-			//restart game
-		//	init();
-			//Lets organize the code a bit now.
-		//	return;
-		//}
-		
-		//Lets write the code to make the snake eat the food
-		//The logic is simple
-		//If the new head position matches with that of the food,
-		//Create a new head instead of moving the tail
-		//if(nx == food.x && ny == food.y)
-		//{
-		//	var tail = {x: nx, y: ny};
-		//	score++;
-			//Create new food
-		//	create_food();
-		//}
-		//else
-		//{
-		//	var tail = snake_array.pop(); //pops out the last cell
-		//	tail.x = nx; tail.y = ny;
-		//}
-		//The snake can now eat the food.
-		
-		//snake_array.unshift(tail); //puts back the tail as the first cell
-		
-		//for(var i = 0; i < snake_array.length; i++)
-		//{
-		//	var c = snake_array[i];
-			//Lets paint 10px wide cells
-		//	drawCell(c.x, c.y);
-		//}
-        
+        if(engine.isGameOver){
+            context.fillStyle = "#fff";
+            context.fillRect(0, 0, w, h);
+            context.strokeStyle = "black";
+            context.strokeRect(0, 0, w, h);
+            engine.player.backgroundColor = "#f00";
+        }else{
+            engine.advance();
+            context.fillStyle = "lightgrey";
+            context.fillRect(0, 0, w, h);
+            context.strokeStyle = "black";
+            context.strokeRect(0, 0, w, h);
+        }
+            
         engine.testShape.draw(context);
         engine.player.draw(context);
-		
-		//Lets paint the food
-		//drawCell(food.x, food.y);
-		//Lets paint the score
-		//var score_text = "Score: " + score;
-        
-		var score_text = "Score: " + engine.frame
+        var text = "FRAME: " + engine.frame
             + " "
             + (engine.keyData.keyDownU ? "U" : "")
             + (engine.keyData.keyDownD ? "D" : "")
             + (engine.keyData.keyDownL ? "L" : "")
             + (engine.keyData.keyDownR ? "R" : "");
-		context.fillText(score_text, 5, h-5);
-	}
-	
-	//Lets first create a generic function to paint cells
-	function drawCell(x, y) {
-		context.fillStyle = "blue";
-		context.fillRect(x*cellWidth, y*cellWidth, cellWidth, cellWidth);
-		context.strokeStyle = "white";
-		context.strokeRect(x*cellWidth, y*cellWidth, cellWidth, cellWidth);
+        context.fillText(text, 5, h-5);
 	}
 	
 	function check_collision(x, y, array) {
