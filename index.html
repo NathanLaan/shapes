@@ -193,8 +193,6 @@ Engine.prototype.engineAdvance = function run() {
 
 
 
-
-
 $(document).ready(function(){
 	//Canvas stuff
 	var canvas = $("#shapesCanvas")[0];
@@ -206,38 +204,64 @@ $(document).ready(function(){
     engine = new Engine(context,w,h);
 	engine.init();
 	
+    //
+    // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+    //
+	var kc_space = 32;
+    var kc_w = 87;
+    var kc_a = 65;
+    var kc_s = 83;
+    var kc_d = 68;
+    var kc_up = 38;
+    var kc_down = 40;
+    var kc_left = 37;
+    var kc_right = 39;
+	
 	//Lets add the keyboard controls now
 	$(document).keydown(function(e){
-		var key = e.which;
-		if(key == "37") {
-            engine.keyData.keyDownL = true;
-        } else if(key == "38") {
-            engine.keyData.keyDownU = true;
-        } else if(key == "39") {
-            engine.keyData.keyDownR = true;
-        } else if(key == "40") {
-            engine.keyData.keyDownD = true;
-        }
-	})
-	$(document).keyup(function(e){
         switch(e.which){
-            case keycode_spacebar:
-                engine.init();
+            case kc_w:
+            case kc_up:
+                engine.keyData.keyDownU = true;
+                break;
+            case kc_s:
+            case kc_down:
+                engine.keyData.keyDownD = true;
+                break;
+            case kc_a:
+            case kc_left:
+                engine.keyData.keyDownL = true;
+                break;
+            case kc_d:
+            case kc_right:
+                engine.keyData.keyDownR = true;
                 break;
         }
-		var key = e.which;
-		if(key == "37") {
-            engine.keyData.keyDownL = false;
-        } else if(key == "38") {
-            engine.keyData.keyDownU = false;
-        } else if(key == "39") {
-            engine.keyData.keyDownR = false;
-        } else if(key == "40") {
-            engine.keyData.keyDownD = false;
+	})
+    
+	$(document).keyup(function(e){
+        switch(e.which){
+            case kc_space:
+                engine.init();
+                break;
+            case kc_w:
+            case kc_up:
+                engine.keyData.keyDownU = false;
+                break;
+            case kc_s:
+            case kc_down:
+                engine.keyData.keyDownD = false;
+                break;
+            case kc_a:
+            case kc_left:
+                engine.keyData.keyDownL = false;
+                break;
+            case kc_d:
+            case kc_right:
+                engine.keyData.keyDownR = false;
+                break;
         }
 	})
-	
-	var keycode_spacebar = 32;
 	
 })
 
