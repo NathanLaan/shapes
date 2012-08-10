@@ -103,9 +103,10 @@ Shape.prototype.draw = function(c){
 //
 // CLASS: Engine
 //
-function Engine(w,h){
+function Engine(c,w,h){
     this.score = 0;
     this.frame = 0;
+    this.context = c;
     this.canvasW = w;
     this.canvasH = h;
     this.keyData = new KeyData();
@@ -113,10 +114,10 @@ function Engine(w,h){
     this.testShape = new Shape(0,0);
     this.shapeArray = new Array();
     this.isGameOver = false;
+    this.engineLoop;
 }
-Engine.prototype.advance = function(){
+Engine.prototype.advanceFrame = function(){
     this.frame++;
-    
     //move player
     if(this.keyData.keyDownU && this.player.y > 1){
         this.player.y -= 5;
@@ -141,6 +142,12 @@ Engine.prototype.advance = function(){
         this.isGameOver = true;
     }
 }
+Engine.prototype.initTestShape = function(){
+    this.testShape = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
+    //this.testShape.v = Math.round(Math.random()*10);
+    this.testShape.v = 4;
+}
+
 //Reset the engine to starting conditions
 Engine.prototype.init = function(){
     this.isGameOver = false;
@@ -150,12 +157,39 @@ Engine.prototype.init = function(){
     this.player.backgroundColor = "#0f0";
     this.player.borderColor = "#000";
     this.initTestShape();
+    if(typeof this.engineLoop != "undefined"){
+        clearInterval(this.engineLoop);
+    }
+    var engineRef = this;
+    this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
 }
-Engine.prototype.initTestShape = function(){
-    this.testShape = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
-    //this.testShape.v = Math.round(Math.random()*10);
-    this.testShape.v = 5;
+
+
+Engine.prototype.engineAdvance = function run() {
+    if(this.isGameOver){
+        this.context.fillStyle = "#fff";
+        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
+        this.context.strokeStyle = "black";
+        this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
+        this.player.backgroundColor = "#f00";
+    }else{
+        this.advanceFrame();
+        this.context.fillStyle = "#eee";
+        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
+        this.context.strokeStyle = "black";
+        this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
+    }
+    this.testShape.draw(this.context);
+    this.player.draw(this.context);
+    var text = "FRAME: " + this.frame
+        + " "
+        + (this.keyData.keyDownU ? "U" : "")
+        + (this.keyData.keyDownD ? "D" : "")
+        + (this.keyData.keyDownL ? "L" : "")
+        + (this.keyData.keyDownR ? "R" : "");
+    this.context.fillText(text, 5, this.canvasH-5);
 }
+
 
 
 
@@ -169,54 +203,8 @@ $(document).ready(function(){
 	var h = $("#shapesCanvas").height();
     var engine;
     
-    engine = new Engine(w,h);
-	
-	function init() {
-        engine.init();
-		if(typeof engineLoop != "undefined"){
-            clearInterval(engineLoop);
-        }
-		engineLoop = setInterval(draw, 30);
-	}
-	init();
-	
-	//Lets paint the snake now
-	function draw()
-	{
-        if(engine.isGameOver){
-            context.fillStyle = "#fff";
-            context.fillRect(0, 0, w, h);
-            context.strokeStyle = "black";
-            context.strokeRect(0, 0, w, h);
-            engine.player.backgroundColor = "#f00";
-        }else{
-            engine.advance();
-            context.fillStyle = "lightgrey";
-            context.fillRect(0, 0, w, h);
-            context.strokeStyle = "black";
-            context.strokeRect(0, 0, w, h);
-        }
-            
-        engine.testShape.draw(context);
-        engine.player.draw(context);
-        var text = "FRAME: " + engine.frame
-            + " "
-            + (engine.keyData.keyDownU ? "U" : "")
-            + (engine.keyData.keyDownD ? "D" : "")
-            + (engine.keyData.keyDownL ? "L" : "")
-            + (engine.keyData.keyDownR ? "R" : "");
-        context.fillText(text, 5, h-5);
-	}
-	
-	function check_collision(x, y, array) {
-		//This function will check if the provided x/y coordinates exist
-		//in an array of cells or not
-		for(var i = 0; i < array.length; i++) {
-			if(array[i].x == x && array[i].y == y)
-			 return true;
-		}
-		return false;
-	}
+    engine = new Engine(context,w,h);
+	engine.init();
 	
 	//Lets add the keyboard controls now
 	$(document).keydown(function(e){
@@ -232,6 +220,11 @@ $(document).ready(function(){
         }
 	})
 	$(document).keyup(function(e){
+        switch(e.which){
+            case keycode_spacebar:
+                engine.init();
+                break;
+        }
 		var key = e.which;
 		if(key == "37") {
             engine.keyData.keyDownL = false;
@@ -244,7 +237,7 @@ $(document).ready(function(){
         }
 	})
 	
-	
+	var keycode_spacebar = 32;
 	
 })
 
