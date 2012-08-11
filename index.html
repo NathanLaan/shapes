@@ -144,8 +144,8 @@ Engine.prototype.advanceFrame = function(){
 }
 Engine.prototype.initTestShape = function(){
     this.testShape = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
-    //this.testShape.v = Math.round(Math.random()*10);
-    this.testShape.v = 4;
+    this.testShape.v = Math.round(Math.random()*10);
+    //this.testShape.v = 4;
 }
 
 //Reset the engine to starting conditions
@@ -194,7 +194,6 @@ Engine.prototype.engineAdvance = function run() {
 
 
 $(document).ready(function(){
-	//Canvas stuff
 	var canvas = $("#shapesCanvas")[0];
 	var context = canvas.getContext("2d");
 	var w = $("#shapesCanvas").width();
@@ -217,7 +216,6 @@ $(document).ready(function(){
     var kc_left = 37;
     var kc_right = 39;
 	
-	//Lets add the keyboard controls now
 	$(document).keydown(function(e){
         switch(e.which){
             case kc_w:
