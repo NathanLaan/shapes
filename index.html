@@ -111,10 +111,10 @@ function Engine(c,w,h){
     this.canvasH = h;
     this.keyData = new KeyData();
     this.player = new Shape(0,0);
-    this.testShape = new Shape(0,0);
     this.shapeArray = new Array();
     this.isGameOver = false;
     this.engineLoop;
+    this.newShapeFrequency = 50;
 }
 Engine.prototype.advanceFrame = function(){
     this.frame++;
@@ -131,21 +131,33 @@ Engine.prototype.advanceFrame = function(){
     if(this.keyData.keyDownR && this.player.x < this.canvasW-5){
         this.player.x += 5;
     }
-    
-    if(this.testShape.y < this.canvasH + 1){
-        this.testShape.y += this.testShape.v;
-    }else{
-        this.initTestShape();
+
+    if(this.frame % 50 == 0){
+        this.addShape();
+        if(this.newShapeFrequency > 2){
+            this.newShapeFrequency--;
+        }
     }
-    
-    if(this.player.collide(this.testShape)){
-        this.isGameOver = true;
+
+    for(var i=0; i<this.shapeArray.length;i++){
+        var s = this.shapeArray[i];    
+        if(s.y < this.canvasH + 1){
+            s.y += s.v;
+        }else{
+            this.shapeArray.splice(i,1);
+        }
+        if(this.player.collide(s)){
+            this.isGameOver = true;
+        }
     }
 }
-Engine.prototype.initTestShape = function(){
-    this.testShape = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
-    this.testShape.v = Math.round(Math.random()*10);
-    //this.testShape.v = 4;
+
+Engine.prototype.addShape = function(){
+    var d = this.frame / 200; //difficulty level
+    var s = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
+    s.v = Math.round(Math.random()*d) + 1;
+    console.log("v: " + s.v)
+    this.shapeArray.push(s);
 }
 
 //Reset the engine to starting conditions
@@ -156,7 +168,8 @@ Engine.prototype.init = function(){
     this.player.y = Math.round(this.canvasH/2);
     this.player.backgroundColor = "#0f0";
     this.player.borderColor = "#000";
-    this.initTestShape();
+    this.shapeArray.length = 0;
+    this.addShape();
     if(typeof this.engineLoop != "undefined"){
         clearInterval(this.engineLoop);
     }
@@ -179,9 +192,15 @@ Engine.prototype.engineAdvance = function run() {
         this.context.strokeStyle = "black";
         this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
     }
-    this.testShape.draw(this.context);
+
+    for(var i=0;i<this.shapeArray.length;i++){
+        var s = this.shapeArray[i];    
+        s.draw(this.context);
+    }
     this.player.draw(this.context);
     var text = "FRAME: " + this.frame
+        + (" FREQ: " + this.newShapeFrequency)
+        + (" DIFF: " + this.frame/200)
         + " "
         + (this.keyData.keyDownU ? "U" : "")
         + (this.keyData.keyDownD ? "D" : "")
