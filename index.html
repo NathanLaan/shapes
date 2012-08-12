@@ -117,6 +117,39 @@ function Engine(c,w,h){
     this.engineLoop;
     this.newShapeFrequency = 50;
 }
+
+Engine.prototype.engineAdvance = function() {
+    if(this.isGameOver){
+        this.context.fillStyle = "#fff";
+        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
+        this.context.strokeStyle = "black";
+        this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
+        this.player.backgroundColor = "#f00";
+    }else{
+        this.advanceFrame();
+        this.context.fillStyle = "#eee";
+        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
+        this.context.strokeStyle = "black";
+        this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
+    }
+
+    for(var i=0;i<this.shapeArray.length;i++){
+        var s = this.shapeArray[i];    
+        s.draw(this.context);
+    }
+    this.player.draw(this.context);
+    var text = "FRAME: " + this.frame
+        + (" FREQ: " + this.newShapeFrequency)
+        + (" DIFF: " + this.frame/200)
+        + " "
+        + (this.keyData.keyDownU ? "U" : "")
+        + (this.keyData.keyDownD ? "D" : "")
+        + (this.keyData.keyDownL ? "L" : "")
+        + (this.keyData.keyDownR ? "R" : "");
+    this.context.fillText(text, 5, this.canvasH-5);
+}
+
+
 Engine.prototype.advanceFrame = function(){
     this.frame++;
     //move player
@@ -171,11 +204,7 @@ Engine.prototype.init = function(){
     this.player.borderColor = "#000";
     this.shapeArray.length = 0;
     this.addShape();
-    if(typeof this.engineLoop != "undefined"){
-        clearInterval(this.engineLoop);
-    }
-    var engineRef = this;
-    this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
+    this.startEngine();
     this.isRunning = true;
 }
 
@@ -184,44 +213,22 @@ Engine.prototype.playPause = function(){
     // TODO: Check for this.isRunning
     //
     if(this.isRunning){
-        clearInterval(this.engineLoop);
+        this.stopEngine();
     }else{
-        var engineRef = this;
-        this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
+        this.startEngine();
     }
     this.isRunning = !this.isRunning;
 }
 
-
-Engine.prototype.engineAdvance = function run() {
-    if(this.isGameOver){
-        this.context.fillStyle = "#fff";
-        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
-        this.context.strokeStyle = "black";
-        this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
-        this.player.backgroundColor = "#f00";
-    }else{
-        this.advanceFrame();
-        this.context.fillStyle = "#eee";
-        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
-        this.context.strokeStyle = "black";
-        this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
+Engine.prototype.startEngine = function(){
+    if(typeof this.engineLoop != "undefined"){
+        this.stopEngine();
     }
-
-    for(var i=0;i<this.shapeArray.length;i++){
-        var s = this.shapeArray[i];    
-        s.draw(this.context);
-    }
-    this.player.draw(this.context);
-    var text = "FRAME: " + this.frame
-        + (" FREQ: " + this.newShapeFrequency)
-        + (" DIFF: " + this.frame/200)
-        + " "
-        + (this.keyData.keyDownU ? "U" : "")
-        + (this.keyData.keyDownD ? "D" : "")
-        + (this.keyData.keyDownL ? "L" : "")
-        + (this.keyData.keyDownR ? "R" : "");
-    this.context.fillText(text, 5, this.canvasH-5);
+    var engineRef = this;
+    this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
+}
+Engine.prototype.stopEngine = function(){
+    clearInterval(this.engineLoop);
 }
 
 
