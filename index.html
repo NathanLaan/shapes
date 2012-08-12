@@ -112,6 +112,7 @@ function Engine(c,w,h){
     this.keyData = new KeyData();
     this.player = new Shape(0,0);
     this.shapeArray = new Array();
+    this.isRunning = false;
     this.isGameOver = false;
     this.engineLoop;
     this.newShapeFrequency = 50;
@@ -175,6 +176,20 @@ Engine.prototype.init = function(){
     }
     var engineRef = this;
     this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
+    this.isRunning = true;
+}
+
+Engine.prototype.playPause = function(){
+    //
+    // TODO: Check for this.isRunning
+    //
+    if(this.isRunning){
+        clearInterval(this.engineLoop);
+    }else{
+        var engineRef = this;
+        this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
+    }
+    this.isRunning = !this.isRunning;
 }
 
 
@@ -234,6 +249,7 @@ $(document).ready(function(){
     var kc_down = 40;
     var kc_left = 37;
     var kc_right = 39;
+    var kc_enter = 13;
 	
 	$(document).keydown(function(e){
         switch(e.which){
@@ -259,6 +275,9 @@ $(document).ready(function(){
 	$(document).keyup(function(e){
         switch(e.which){
             case kc_space:
+                engine.playPause();
+                break;
+            case kc_enter:
                 engine.init();
                 break;
             case kc_w:
