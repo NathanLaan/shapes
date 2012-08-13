@@ -118,15 +118,52 @@ function Engine(c,w,h){
     this.newShapeFrequency = 50;
 }
 
-Engine.prototype.engineAdvance = function() {
+Engine.prototype.gameLoop = function() {
     if(this.isGameOver){
         this.context.fillStyle = "#fff";
         this.context.fillRect(0, 0, this.canvasW, this.canvasH);
         this.context.strokeStyle = "black";
         this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
         this.player.backgroundColor = "#f00";
+        //
+        // TODO: draw "GAME OVER" text
+        //
+        // TODO: draw "Hit ENTER to start a new game" text
+        //
     }else{
-        this.advanceFrame();
+        this.frame++;
+        //move player
+        if(this.keyData.keyDownU && this.player.y > 1){
+            this.player.y -= 5;
+        }
+        if(this.keyData.keyDownD && this.player.y < this.canvasH-5){
+            this.player.y += 5;
+        }
+        if(this.keyData.keyDownL && this.player.x > 1){
+            this.player.x -= 5;
+        }
+        if(this.keyData.keyDownR && this.player.x < this.canvasW-5){
+            this.player.x += 5;
+        }
+
+        if(this.frame % 50 == 0){
+            this.addShape();
+            if(this.newShapeFrequency > 2){
+                this.newShapeFrequency--;
+            }
+        }
+
+        for(var i=0; i<this.shapeArray.length;i++){
+            var s = this.shapeArray[i];    
+            if(s.y < this.canvasH + 1){
+                s.y += s.v;
+            }else{
+                this.shapeArray.splice(i,1);
+            }
+            if(this.player.collide(s)){
+                this.isGameOver = true;
+            }
+        }
         this.context.fillStyle = "#eee";
         this.context.fillRect(0, 0, this.canvasW, this.canvasH);
         this.context.strokeStyle = "black";
@@ -146,44 +183,9 @@ Engine.prototype.engineAdvance = function() {
         + (this.keyData.keyDownD ? "D" : "")
         + (this.keyData.keyDownL ? "L" : "")
         + (this.keyData.keyDownR ? "R" : "");
+    this.context.font = "10px Helvetica";
     this.context.fillText(text, 5, this.canvasH-5);
-}
 
-
-Engine.prototype.advanceFrame = function(){
-    this.frame++;
-    //move player
-    if(this.keyData.keyDownU && this.player.y > 1){
-        this.player.y -= 5;
-    }
-    if(this.keyData.keyDownD && this.player.y < this.canvasH-5){
-        this.player.y += 5;
-    }
-    if(this.keyData.keyDownL && this.player.x > 1){
-        this.player.x -= 5;
-    }
-    if(this.keyData.keyDownR && this.player.x < this.canvasW-5){
-        this.player.x += 5;
-    }
-
-    if(this.frame % 50 == 0){
-        this.addShape();
-        if(this.newShapeFrequency > 2){
-            this.newShapeFrequency--;
-        }
-    }
-
-    for(var i=0; i<this.shapeArray.length;i++){
-        var s = this.shapeArray[i];    
-        if(s.y < this.canvasH + 1){
-            s.y += s.v;
-        }else{
-            this.shapeArray.splice(i,1);
-        }
-        if(this.player.collide(s)){
-            this.isGameOver = true;
-        }
-    }
 }
 
 Engine.prototype.addShape = function(){
@@ -214,6 +216,9 @@ Engine.prototype.playPause = function(){
     //
     if(this.isRunning){
         this.stopEngine();
+        this.context.fillStyle = "#00e";
+        this.context.font = "26px Helvetica";
+        this.context.fillText("PAUSED", 5, 30);
     }else{
         this.startEngine();
     }
@@ -225,7 +230,7 @@ Engine.prototype.startEngine = function(){
         this.stopEngine();
     }
     var engineRef = this;
-    this.engineLoop = setInterval(function(){engineRef.engineAdvance()}, 30);
+    this.engineLoop = setInterval(function(){engineRef.gameLoop()}, 30);
 }
 Engine.prototype.stopEngine = function(){
     clearInterval(this.engineLoop);
