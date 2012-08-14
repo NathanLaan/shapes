@@ -55,6 +55,20 @@ function draw() {
 <script type="text/javascript">
 
 
+//namespace
+NL = {};
+
+extend = function(subClass, baseClass) {
+   function inheritance() {}
+   inheritance.prototype = baseClass.prototype;
+   subClass.prototype = new inheritance();
+   subClass.prototype.constructor = subClass;
+   subClass.baseConstructor = baseClass;
+   subClass.superClass = baseClass.prototype;
+}
+
+
+
 function KeyData(){
     this.keyDownU = false;
     this.keyDownD = false;
@@ -100,6 +114,25 @@ Shape.prototype.draw = function(c){
     c.strokeRect(this.x, this.y, this.w, this.h);
 }
 
+function Player(ix,iy){
+    Player.baseConstructor.call(this, ix, iy);
+}
+extend(Player,Shape);
+Player.prototype.draw = function(c){
+    c.fillStyle = this.backgroundColor;
+    c.strokeStyle = this.borderColor;
+    c.lineWidth = 1;
+
+    c.beginPath();
+    c.moveTo(this.x, this.y + this.h);
+    c.lineTo(this.x + (this.w/2), this.y);
+    c.lineTo(this.x + this.w, this.y + this.h);
+    c.lineTo(this.x, this.y + this.h);
+    c.fill();
+    c.stroke();
+    c.closePath();
+}
+
 //
 // CLASS: Engine
 //
@@ -110,7 +143,7 @@ function Engine(c,w,h){
     this.canvasW = w;
     this.canvasH = h;
     this.keyData = new KeyData();
-    this.player = new Shape(0,0);
+    this.player = new Player(0,0);
     this.shapeArray = new Array();
     this.isRunning = false;
     this.isGameOver = false;
