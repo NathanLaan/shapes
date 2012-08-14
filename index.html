@@ -158,6 +158,11 @@ Engine.prototype.gameLoop = function() {
         this.context.strokeStyle = "black";
         this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
         this.player.backgroundColor = "#f00";
+
+        this.stopEngine();
+        this.context.fillStyle = "#e00";
+        this.context.font = "26px Helvetica";
+        this.context.fillText("GAME OVER :(", 5, 30);
         //
         // TODO: draw "GAME OVER" text
         //
@@ -320,7 +325,9 @@ $(document).ready(function(){
 	$(document).keyup(function(e){
         switch(e.which){
             case kc_space:
-                engine.playPause();
+                if(!engine.isGameOver){
+                    engine.playPause();
+                }
                 break;
             case kc_enter:
                 engine.init();
