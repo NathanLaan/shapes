@@ -148,7 +148,7 @@ function Engine(c,w,h){
     this.isRunning = false;
     this.isGameOver = false;
     this.engineLoop;
-    this.newShapeFrequency = 50;
+    this.newShapeFrequency = 100;
 }
 
 Engine.prototype.gameLoop = function() {
@@ -184,9 +184,11 @@ Engine.prototype.gameLoop = function() {
             this.player.x += 5;
         }
 
-        if(this.frame % 50 == 0){
-            this.addShape();
-            if(this.newShapeFrequency > 2){
+        if(this.frame % this.newShapeFrequency < 2){
+            for(var i=0;i<(this.getDifficulty());i++){
+                this.addShape();
+            }
+            if(this.newShapeFrequency > 1){
                 this.newShapeFrequency--;
             }
         }
@@ -215,7 +217,7 @@ Engine.prototype.gameLoop = function() {
     this.player.draw(this.context);
     var text = "FRAME: " + this.frame
         + (" FREQ: " + this.newShapeFrequency)
-        + (" DIFF: " + this.frame/200)
+        + (" DIFF: " + this.getDifficulty())
         + " "
         + (this.keyData.keyDownU ? "U" : "")
         + (this.keyData.keyDownD ? "D" : "")
@@ -226,11 +228,17 @@ Engine.prototype.gameLoop = function() {
 
 }
 
+Engine.prototype.getDifficulty = function(){
+    return this.frame / this.newShapeFrequency / 4;
+}
+
 Engine.prototype.addShape = function(){
-    var d = this.frame / 200; //difficulty level
-    var s = new Shape(Math.round(Math.random()*this.canvasW + 20) - 10, -10);
-    s.v = Math.round(Math.random()*d) + 1;
-    console.log("v: " + s.v)
+    //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
+    //
+    // TEMP: Give us a "safe spot" along the left edge of the canvas
+    //
+    var s = new Shape(Math.round(Math.random()*this.canvasW + 30), -10);
+    s.v = (Math.random()* this.getDifficulty()) + 1;
     this.shapeArray.push(s);
 }
 
