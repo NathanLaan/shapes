@@ -266,6 +266,19 @@ Engine.prototype.playPause = function(){
         this.context.fillStyle = "#00e";
         this.context.font = "26px Helvetica";
         this.context.fillText("PAUSED", 5, 30);
+
+        //
+        // Good spot for some debug info!
+        //
+        console.log( "SHAPES: " + this.shapeArray.length
+        + " FRAME: " + this.frame
+        + " FREQ: " + this.newShapeFrequency
+        + " DIFF: " + this.getDifficulty()
+        + " "
+        + (this.keyData.keyDownU ? "U" : "")
+        + (this.keyData.keyDownD ? "D" : "")
+        + (this.keyData.keyDownL ? "L" : "")
+        + (this.keyData.keyDownR ? "R" : ""));
     }else{
         this.startEngine();
     }
