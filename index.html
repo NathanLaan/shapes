@@ -84,7 +84,7 @@ function Shape(ix,iy){
     this.h=10;
     this.v=1;
     this.a=270;
-    this.backgroundColor = "white";
+    this.backgroundColor = "#888";
     this.borderColor = "black";
 }
 Shape.prototype.collide = function(shape){
@@ -108,10 +108,10 @@ Shape.prototype.collide = function(shape){
 }
 Shape.prototype.draw = function(c){
     c.fillStyle = this.backgroundColor;
-    c.strokeStyle = this.borderColor;
-    c.lineWidth = 1;
+    //c.strokeStyle = this.borderColor;
+    //c.lineWidth = 1;
     c.fillRect(this.x, this.y, this.w, this.h);
-    c.strokeRect(this.x, this.y, this.w, this.h);
+    //c.strokeRect(this.x, this.y, this.w, this.h);
 }
 
 function Player(ix,iy){
@@ -238,6 +238,8 @@ Engine.prototype.addShape = function(){
     // TEMP: Give us a "safe spot" along the top edge of the canvas
     //
     var s = new Shape(Math.round(Math.random()*this.canvasW + 10), +20);
+    s.w = 8;
+    s.h = 8;
     //s.v = (Math.random()* this.getDifficulty()) + 1;
     //
     // Fixed random velocity:
