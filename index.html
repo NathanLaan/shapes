@@ -98,7 +98,7 @@ Player.prototype.draw = function(c){
 extend(Square,Shape);
 function Square(x,y){
     Square.baseConstructor.call(this, x, y);
-    this.backgroundColor = "#0ff";
+    this.backgroundColor = "#00f";
     this.w = 14;
     this.h = 14;
     this.collideOffset = 0;
@@ -128,6 +128,16 @@ function Hole(x,y){
 Hole.prototype.draw = function(c){
     c.fillStyle = this.backgroundColor;
     c.fillRect(this.x, this.y, this.w, this.h);
+}
+
+
+
+function Freezer(x,y){
+    Freezer.baseConstructor.call(this, x, y);
+    this.backgroundColor = "#0ff";
+    this.w = 14;
+    this.h = 14;
+    this.collideOffset = 0;
 }
 
 
@@ -234,6 +244,8 @@ Engine.prototype.gameLoop = function() {
             }
             if(s.collide(this.player)){
                 blackHoled = true;
+                this.score++;
+                this.blackHoleArray.splice(i,1);
             }
         }
 
