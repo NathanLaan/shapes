@@ -80,25 +80,25 @@ function KeyData(){
 function Shape(ix,iy){
     this.x=ix;
     this.y=iy;
-    this.w=10;
-    this.h=10;
+    this.w=8;
+    this.h=8;
     this.v=1;
     this.a=270;
     this.backgroundColor = "#888";
     this.borderColor = "black";
+    this.collideOffset = 2;
 }
 Shape.prototype.collide = function(shape){
     //http://www.gamedev.net/page/resources/_/technical/game-programming/collision-detection-r735
-    var offset = 2;
-    var l1 = this.x + offset;
-    var l2 = shape.x + offset;
-    var r1 = l1 + this.w - 2*offset;
-    var r2 = l2 + shape.w - 2*offset;
+    var l1 = this.x + this.collideOffset;
+    var l2 = shape.x + this.collideOffset;
+    var r1 = l1 + this.w - 2*this.collideOffset;
+    var r2 = l2 + shape.w - 2*this.collideOffset;
     
-    var t1 = this.y + offset;
-    var t2 = shape.y + offset;
-    var b1 = t1 + this.h - 2*offset;
-    var b2 = t2 + shape.h - 2*offset;
+    var t1 = this.y + this.collideOffset;
+    var t2 = shape.y + this.collideOffset;
+    var b1 = t1 + this.h - 2*this.collideOffset;
+    var b2 = t2 + shape.h - 2*this.collideOffset;
     
     if(b1 < t2) return false;
     if(t1 > b2) return false;
@@ -120,12 +120,12 @@ Shape.prototype.draw = function(c){
     c.fill();
 }
 
-function Player(ix,iy){
-    Player.baseConstructor.call(this, ix, iy);
+extend(Player,Shape);
+function Player(x,y){
+    Player.baseConstructor.call(this, x, y);
     this.isInvincible = false;
     this.invincibleCounter = 0; //100?
 }
-extend(Player,Shape);
 Player.prototype.draw = function(c){
     c.fillStyle = this.backgroundColor;
     c.strokeStyle = this.borderColor;
@@ -141,6 +141,26 @@ Player.prototype.draw = function(c){
     c.closePath();
 }
 
+
+
+extend(Square,Shape);
+function Square(x,y){
+    Square.baseConstructor.call(this, x, y);
+    this.backgroundColor = "#0ff";
+    this.w = 14;
+    this.h = 14;
+    this.collideOffset = 0;
+}
+Square.prototype.draw = function(c){
+    c.fillStyle = this.backgroundColor;
+    //c.strokeStyle = this.borderColor;
+    //c.lineWidth = 1;
+    c.fillRect(this.x, this.y, this.w, this.h);
+    //c.strokeRect(this.x, this.y, this.w, this.h);
+}
+
+
+
 //
 // CLASS: Engine
 //
@@ -152,7 +172,10 @@ function Engine(c,w,h){
     this.canvasH = h;
     this.keyData = new KeyData();
     this.player = new Player(0,0);
+    this.player.w = 12;
+    this.player.h = 16;
     this.shapeArray = new Array();
+    this.squareArray = new Array();
     this.isRunning = false;
     this.isGameOver = false;
     this.engineLoop;
@@ -179,22 +202,23 @@ Engine.prototype.gameLoop = function() {
     }else{
         this.frame++;
         //move player
+        var moveAmount = 4;
         if(this.keyData.keyDownU && this.player.y > 1){
-            this.player.y -= 5;
+            this.player.y -= moveAmount;
         }
-        if(this.keyData.keyDownD && this.player.y < this.canvasH-5){
-            this.player.y += 5;
+        if(this.keyData.keyDownD && this.player.y < this.canvasH-moveAmount){
+            this.player.y += moveAmount;
         }
         if(this.keyData.keyDownL && this.player.x > 1){
-            this.player.x -= 5;
+            this.player.x -= moveAmount;
         }
-        if(this.keyData.keyDownR && this.player.x < this.canvasW-5){
-            this.player.x += 5;
+        if(this.keyData.keyDownR && this.player.x < this.canvasW-moveAmount){
+            this.player.x += moveAmount;
         }
 
         var randFreq = Math.round(Math.random() * this.newShapeFrequency);
         if(this.frame % randFreq < 1){
-            console.log("RAND: " + randFreq);
+            //console.log("RAND: " + randFreq);
             this.addShape();
         }
 
@@ -204,7 +228,28 @@ Engine.prototype.gameLoop = function() {
             // }
             this.addShape();
             if(this.newShapeFrequency > 1){
-                this.newShapeFrequency--;
+
+                //
+                // randomly decrease
+                //
+                var randCheck = Math.random() * 10;
+                if(randCheck < 5){
+                    this.newShapeFrequency--;
+                    console.log('dec');
+                }
+            }
+        }
+
+        for(var i=0; i<this.squareArray.length;i++){
+            var s = this.squareArray[i];    
+            if(s.y < this.canvasH + 1){
+                s.y += s.v;
+            }else{
+                this.squareArray.splice(i,1);
+            }
+            if(this.player.collide(s)){
+                this.score++;
+                this.squareArray.splice(i,1);
             }
         }
 
@@ -219,26 +264,32 @@ Engine.prototype.gameLoop = function() {
                 this.isGameOver = true;
             }
         }
+
         this.context.fillStyle = "#eee";
         this.context.fillRect(0, 0, this.canvasW, this.canvasH);
         this.context.strokeStyle = "black";
         this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
     }
 
+    for(var i=0;i<this.squareArray.length;i++){
+        var s = this.squareArray[i];    
+        s.draw(this.context);
+    }
     for(var i=0;i<this.shapeArray.length;i++){
         var s = this.shapeArray[i];    
         s.draw(this.context);
     }
     this.player.draw(this.context);
-    var text = "FRAME: " + this.frame
-        + (" FREQ: " + this.newShapeFrequency)
-        + (" DIFF: " + this.getDifficulty())
-        + " "
-        + (this.keyData.keyDownU ? "U" : "")
-        + (this.keyData.keyDownD ? "D" : "")
-        + (this.keyData.keyDownL ? "L" : "")
-        + (this.keyData.keyDownR ? "R" : "");
-    this.context.font = "10px Helvetica";
+    var text = "SCORE: " + this.score
+        + " FRAME: " + this.frame;
+        // + (" FREQ: " + this.newShapeFrequency)
+        // + (" DIFF: " + this.getDifficulty())
+        // + " "
+        // + (this.keyData.keyDownU ? "U" : "")
+        // + (this.keyData.keyDownD ? "D" : "")
+        // + (this.keyData.keyDownL ? "L" : "")
+        // + (this.keyData.keyDownR ? "R" : "");
+    this.context.font = "12px Helvetica";
     this.context.fillText(text, 5, this.canvasH-5);
 
 }
@@ -252,15 +303,29 @@ Engine.prototype.addShape = function(){
     //
     // TEMP: Give us a "safe spot" along the top edge of the canvas
     //
-    var s = new Shape(Math.round(Math.random()*this.canvasW + 10), +20);
-    s.w = 8;
-    s.h = 8;
+    var s = new Shape(Math.round(Math.random()*this.canvasW + 2), +20);
     //s.v = (Math.random()* this.getDifficulty()) + 1;
     //
     // Fixed random velocity:
     //
     s.v = (Math.random()* 3) + 1;
     this.shapeArray.push(s);
+
+    this.addSquare();
+}
+
+Engine.prototype.addSquare = function(){
+    //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
+    //
+    // TEMP: Give us a "safe spot" along the top edge of the canvas
+    //
+    var s = new Square(Math.round(Math.random()*this.canvasW + 10), +20);
+    //s.v = (Math.random()* this.getDifficulty()) + 1;
+    //
+    // Fixed random velocity:
+    //
+    s.v = (Math.random()* 3) + 1;
+    this.squareArray.push(s);
 }
 
 //Reset the engine to starting conditions
