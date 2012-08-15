@@ -110,8 +110,14 @@ Shape.prototype.draw = function(c){
     c.fillStyle = this.backgroundColor;
     //c.strokeStyle = this.borderColor;
     //c.lineWidth = 1;
-    c.fillRect(this.x, this.y, this.w, this.h);
+    //c.fillRect(this.x, this.y, this.w, this.h);
     //c.strokeRect(this.x, this.y, this.w, this.h);
+
+    //circle
+    c.beginPath();
+    c.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, 360);
+    c.closePath();
+    c.fill();
 }
 
 function Player(ix,iy){
