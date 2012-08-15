@@ -116,6 +116,8 @@ Shape.prototype.draw = function(c){
 
 function Player(ix,iy){
     Player.baseConstructor.call(this, ix, iy);
+    this.isInvincible = false;
+    this.invincibleCounter = 0; //100?
 }
 extend(Player,Shape);
 Player.prototype.draw = function(c){
@@ -184,10 +186,17 @@ Engine.prototype.gameLoop = function() {
             this.player.x += 5;
         }
 
+        var randFreq = Math.round(Math.random() * this.newShapeFrequency);
+        if(this.frame % randFreq < 1){
+            console.log("RAND: " + randFreq);
+            this.addShape();
+        }
+
         if(this.frame % this.newShapeFrequency < 2){
-            for(var i=0;i<(this.getDifficulty());i++){
-                this.addShape();
-            }
+            // for(var i=0;i<(this.getDifficulty());i++){
+            //     this.addShape();
+            // }
+            this.addShape();
             if(this.newShapeFrequency > 1){
                 this.newShapeFrequency--;
             }
