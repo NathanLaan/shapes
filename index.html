@@ -89,16 +89,16 @@ function Shape(ix,iy){
 }
 Shape.prototype.collide = function(shape){
     //http://www.gamedev.net/page/resources/_/technical/game-programming/collision-detection-r735
-    var offset = 1;
+    var offset = 2;
     var l1 = this.x + offset;
     var l2 = shape.x + offset;
-    var r1 = l1 + this.w;
-    var r2 = l2 + shape.w;
+    var r1 = l1 + this.w - 2*offset;
+    var r2 = l2 + shape.w - 2*offset;
     
     var t1 = this.y + offset;
     var t2 = shape.y + offset;
-    var b1 = t1 + this.h;
-    var b2 = t2 + shape.h;
+    var b1 = t1 + this.h - 2*offset;
+    var b2 = t2 + shape.h - 2*offset;
     
     if(b1 < t2) return false;
     if(t1 > b2) return false;
