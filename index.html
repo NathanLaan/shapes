@@ -99,8 +99,8 @@ extend(Square,Shape);
 function Square(x,y){
     Square.baseConstructor.call(this, x, y);
     this.backgroundColor = "#00f";
-    this.w = 14;
-    this.h = 14;
+    this.w = 12;
+    this.h = 12;
     this.collideOffset = 0;
     //
     // TODO: "Freeze" blocks?
@@ -121,13 +121,18 @@ extend(Hole,Shape);
 function Hole(x,y){
     Hole.baseConstructor.call(this, x, y);
     this.backgroundColor = "#000";
-    this.w = 14;
-    this.h = 14;
+    this.w = 12;
+    this.h = 12;
     this.collideOffset = 0;
 }
 Hole.prototype.draw = function(c){
     c.fillStyle = this.backgroundColor;
-    c.fillRect(this.x, this.y, this.w, this.h);
+    //c.fillRect(this.x, this.y, this.w, this.h);
+    //circle
+    c.beginPath();
+    c.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, 360);
+    c.closePath();
+    c.fill();
 }
 
 
@@ -155,7 +160,7 @@ function Engine(c,w,h){
     this.player = new Player(0,0);
     this.player.w = 12;
     this.player.h = 16;
-    this.shapeArray = new Array();
+    this.asteroidArray = new Array();
     this.squareArray = new Array();
     this.blackHoleArray = new Array();
     this.isRunning = false;
@@ -174,15 +179,12 @@ Engine.prototype.gameLoop = function() {
 
         this.stopEngine();
         this.context.fillStyle = "#e00";
-        this.context.font = "26px Helvetica";
+        this.context.font = "20px Helvetica";
         this.context.fillText("GAME OVER :(", 5, 30);
-        //
-        // TODO: draw "GAME OVER" text
-        //
-        // TODO: draw "Hit ENTER to start a new game" text
-        //
+        this.context.fillText("Hit ENTER to start a new game", 5, 60);
     }else{
         this.frame++;
+
         //move player
         var moveAmount = 4;
         if(this.keyData.keyDownU && this.player.y > 1){
@@ -198,35 +200,36 @@ Engine.prototype.gameLoop = function() {
             this.player.x += moveAmount;
         }
 
-        var randFreq = Math.round(Math.random() * this.newShapeFrequency);
-        if(this.frame % randFreq < 1){
-            //console.log("RAND: " + randFreq);
-            this.addShape();
-        }
-
         if(this.frame % this.newShapeFrequency < 2){
-            // for(var i=0;i<(this.getDifficulty());i++){
-            //     this.addShape();
-            // }
-            this.addShape();
+            var randCheck = Math.random() * 10;
+            if(randCheck < 7){ 
+                this.addAsteroid();
+            }
             if(this.newShapeFrequency > 1){
-
-                //
-                // randomly decrease
-                //
-                var randCheck = Math.random() * 10;
+                // randomly increase the asteroid spawn frequency
+                randCheck = Math.random() * 10;
                 if(randCheck < 5){
                     this.newShapeFrequency--;
                 }
             }
         }
 
-        for(var i=0; i<this.shapeArray.length;i++){
-            var s = this.shapeArray[i];    
+
+        randCheck = Math.random() * 100;
+        if(randCheck < 10){
+            this.addSquare();
+        }
+        randCheck = Math.random() * 1000;
+        if(randCheck < 5){
+            this.addBlackHole();
+        }
+
+        for(var i=0; i<this.asteroidArray.length;i++){
+            var s = this.asteroidArray[i];    
             if(s.y < this.canvasH + 1){
                 s.y += s.v;
             }else{
-                this.shapeArray.splice(i,1);
+                this.asteroidArray.splice(i,1);
             }
             if(this.player.collide(s)){
                 this.isGameOver = true;
@@ -253,7 +256,7 @@ Engine.prototype.gameLoop = function() {
             var s = this.squareArray[i];
             if(blackHoled){
                 s.isBlackHoled = true;
-                s.backgroundColor = "#ff0";
+                s.backgroundColor = "#ee0";
             }
             if(this.player.collide(s)){
                 this.score++;
@@ -261,16 +264,23 @@ Engine.prototype.gameLoop = function() {
                 if(this.isBlackHoled){
                     console.log("HOLED!");
                 }
-            }
-            if(s.isFrozen){
-                //TODO: move to player
             }else{
-                if(s.y < this.canvasH + 1){
-                    s.y += s.v;
+                if(s.isFrozen){
+                    //TODO: Nothing!
                 }else{
-                    this.squareArray.splice(i,1);
+                    if(s.isBlackHoled){
+                        var a = Math.atan2(this.player.y - s.y, this.player.x - s.x);
+                        s.x = s.x + Math.cos(a) * s.v;
+                        s.y = s.y + Math.sin(a) * s.v;
+                    }else{
+                        if(s.y < this.canvasH + 1){
+                            s.y += s.v;
+                        }else{
+                            this.squareArray.splice(i,1);
+                        }   
+                    }
                 }
-            } 
+            }
         }
 
         this.context.fillStyle = "#eee";
@@ -287,8 +297,8 @@ Engine.prototype.gameLoop = function() {
         var s = this.squareArray[i];    
         s.draw(this.context);
     }
-    for(var i=0;i<this.shapeArray.length;i++){
-        var s = this.shapeArray[i];    
+    for(var i=0;i<this.asteroidArray.length;i++){
+        var s = this.asteroidArray[i];    
         s.draw(this.context);
     }
     this.player.draw(this.context);
@@ -302,6 +312,7 @@ Engine.prototype.gameLoop = function() {
         // + (this.keyData.keyDownL ? "L" : "")
         // + (this.keyData.keyDownR ? "R" : "");
     this.context.font = "12px Helvetica";
+    this.context.fillStyle = "#00f";
     this.context.fillText(text, 5, this.canvasH-5);
 
 }
@@ -310,48 +321,27 @@ Engine.prototype.getDifficulty = function(){
     return this.frame / this.newShapeFrequency / 4;
 }
 
-Engine.prototype.addShape = function(){
-    //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
-    //
+Engine.prototype.addAsteroid = function(){
     // TEMP: Give us a "safe spot" along the top edge of the canvas
-    //
+    //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
     var s = new Shape(Math.round(Math.random()*this.canvasW + 2), +20);
-    //s.v = (Math.random()* this.getDifficulty()) + 1;
-    //
-    // Fixed random velocity:
-    //
     s.v = (Math.random()* 3) + 1;
-    this.shapeArray.push(s);
-
-    this.addSquare();
-    this.addBlackHole();
+    this.asteroidArray.push(s);
 }
 
 Engine.prototype.addSquare = function(){
-    //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
-    //
     // TEMP: Give us a "safe spot" along the top edge of the canvas
-    //
-    var s = new Square(Math.round(Math.random()*this.canvasW + 10), +20);
-    //s.v = (Math.random()* this.getDifficulty()) + 1;
-    //
-    // Fixed random velocity:
-    //
+    //var s = new Square(Math.round(Math.random()*this.canvasW + 10), -10);
+    var s = new Square(Math.round(Math.random()*this.canvasW + 2), +20);
     s.v = (Math.random()* 3) + 1;
     this.squareArray.push(s);
 }
 
 Engine.prototype.addBlackHole = function(){
-    //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
-    //
     // TEMP: Give us a "safe spot" along the top edge of the canvas
-    //
-    var s = new Hole(Math.round(Math.random()*this.canvasW + 10), +20);
-    //s.v = (Math.random()* this.getDifficulty()) + 1;
-    //
-    // Fixed random velocity:
-    //
-    s.v = (Math.random()* 3) + 1;
+    //var s = new Hole(Math.round(Math.random()*this.canvasW + 10), -10);
+    var s = new Hole(Math.round(Math.random()*this.canvasW + 2), +20);
+    s.v = (Math.random()* 4) + 1;
     this.blackHoleArray.push(s);
 }
 
@@ -363,11 +353,11 @@ Engine.prototype.init = function(){
     this.player.y = Math.round(this.canvasH/2);
     this.player.backgroundColor = "#0f0";
     this.player.borderColor = "#000";
-    this.shapeArray.length = 0;
+    this.asteroidArray.length = 0;
     this.squareArray.length = 0;
     this.blackHoleArray.length = 0;
     this.newShapeFrequency = 100;
-    this.addShape();
+    this.addAsteroid();
     this.startEngine();
     this.isRunning = true;
 }
@@ -376,13 +366,13 @@ Engine.prototype.playPause = function(){
     if(this.isRunning){
         this.stopEngine();
         this.context.fillStyle = "#00e";
-        this.context.font = "26px Helvetica";
+        this.context.font = "20px Helvetica";
         this.context.fillText("PAUSED", 5, 30);
 
         //
         // Good spot for some debug info!
         //
-        console.log( "SHAPES: " + this.shapeArray.length
+        console.log( "SHAPES: " + this.asteroidArray.length
         + " FRAME: " + this.frame
         + " FREQ: " + this.newShapeFrequency
         + " DIFF: " + this.getDifficulty()
@@ -402,6 +392,7 @@ Engine.prototype.startEngine = function(){
         this.stopEngine();
     }
     var engineRef = this;
+    //this.engineLoop = setInterval(function(){engineRef.gameLoop()}, 100);
     this.engineLoop = setInterval(function(){engineRef.gameLoop()}, 30);
 }
 Engine.prototype.stopEngine = function(){
