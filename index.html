@@ -151,6 +151,20 @@ Freezer.prototype.draw = function(c){
 }
 
 
+extend(Converter,Shape);
+function Converter(x,y){
+    Converter.baseConstructor.call(this, x, y);
+    this.borderColor = "#0d0";
+    this.backgroundColor = "#0d0";
+    this.w = 12;
+    this.h = 12;
+    this.collideOffset = 0;
+}
+Converter.prototype.draw = function(c){
+    this.drawCircleStroke(c);
+}
+
+
 
 //
 // CLASS: Engine
@@ -169,6 +183,7 @@ function Engine(c,w,h){
     this.squareArray = new Array();
     this.freezerArray = new Array();
     this.blackHoleArray = new Array();
+    this.converterArray = new Array();
     this.isRunning = false;
     this.isGameOver = false;
     this.engineLoop;
@@ -187,6 +202,7 @@ Engine.prototype.init = function(){
     this.squareArray.length = 0;
     this.freezerArray.length = 0;
     this.blackHoleArray.length = 0;
+    this.converterArray.length = 0;
     this.newShapeFrequency = 100;
     this.addAsteroid();
     this.startEngine();
@@ -255,19 +271,12 @@ Engine.prototype.gameLoop = function() {
             this.addBlackHole();
         }
 
-        for(var i=0; i<this.asteroidArray.length;i++){
-            var s = this.asteroidArray[i];    
-            if(s.y < this.canvasH + 1){
-                s.y += s.v;
-            }else{
-                this.asteroidArray.splice(i,1);
-            }
-            if(this.player.collide(s)){
-                this.isGameOver = true;
-            }
+        randCheck = Math.random() * 1000;
+        if(randCheck < 8){
+            this.addConverter();
         }
 
-        var blackHoled,frozen = false;
+        var blackHoled,frozen,convert = false;
 
         for(var i=0; i<this.blackHoleArray.length;i++){
             var s = this.blackHoleArray[i];    
@@ -300,6 +309,66 @@ Engine.prototype.gameLoop = function() {
                 frozen = true;
                 this.score++;
                 this.freezerArray.splice(i,1);
+            }
+        }
+
+        for(var i=0; i<this.converterArray.length;i++){
+            var s = this.converterArray[i];    
+            if(s.y < this.canvasH + 1){
+                //s.y += s.v;
+                var a = s.a * Math.PI/180;
+                s.x = s.x + Math.cos(a) * s.v;
+                s.y = s.y + Math.sin(a) * s.v;
+            }else{
+                this.converterArray.splice(i,1);
+            }
+            if(s.collide(this.player)){
+                convert = true;
+                this.score++;
+                this.converterArray.splice(i,1);
+            }
+        }
+
+//
+// Not working!
+//
+        // for(var i=0; i<this.asteroidArray.length;i++){
+        //     var s = this.asteroidArray[i];    
+        //     if(convert){
+        //         s.backgroundColor = "#00f";
+        //         this.asteroidArray.splice(i,1);
+        //         this.squareArray.push(s);
+        //     }else{
+        //         if(s.y < this.canvasH + 1){
+        //             s.y += s.v;
+        //         }else{
+        //             this.asteroidArray.splice(i,1);
+        //         }
+        //         if(this.player.collide(s)){
+        //             this.isGameOver = true;
+        //         }
+        //     }
+        // }
+        if(convert){
+            for(var i=0; i<this.asteroidArray.length;i++){
+                var s = this.asteroidArray[i];
+                s.backgroundColor = "#00f";
+                s.w = s.w + 5;
+                s.h = s.h + 5;
+                this.squareArray.push(s);
+            }
+            this.asteroidArray.length = 0;
+        }else{
+            for(var i=0; i<this.asteroidArray.length;i++){
+                var s = this.asteroidArray[i];
+                if(s.y < this.canvasH + 1){
+                    s.y += s.v;
+                }else{
+                    this.asteroidArray.splice(i,1);
+                }
+                if(this.player.collide(s)){
+                    this.isGameOver = true;
+                }
             }
         }
 
@@ -354,6 +423,10 @@ Engine.prototype.gameLoop = function() {
         s = this.blackHoleArray[i];    
         s.draw(this.context);
     }
+    for(i=0;i<this.converterArray.length;i++){
+        s = this.converterArray[i];    
+        s.draw(this.context);
+    }
     for(i=0;i<this.freezerArray.length;i++){
         s = this.freezerArray[i];    
         s.draw(this.context);
@@ -391,8 +464,9 @@ Engine.prototype.addAsteroid = function(){
     //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
     var s = new Shape(Math.round(Math.random()*this.canvasW + 2), +20);
     s.v = (Math.random()* 3) + 1;
-    s.w = (Math.random() * 10) + (Math.random() * 10);
-    s.h = (Math.random() * 10) + (Math.random() * 10);
+    s.a = (Math.random() * 90) + 45;
+    s.w = (Math.random() * 12) + (Math.random() * 10);
+    s.h = (Math.random() * 12) + (Math.random() * 10);
     this.asteroidArray.push(s);
 }
 
@@ -412,6 +486,15 @@ Engine.prototype.addFreezer = function(){
     s.v = (Math.random()* 4) + 1;
     s.a = (Math.random() * 90) + 45;
     this.freezerArray.push(s);
+}
+
+Engine.prototype.addConverter = function(){
+    // TEMP: Give us a "safe spot" along the top edge of the canvas
+    //var s = new Hole(Math.round(Math.random()*this.canvasW + 10), -10);
+    var s = new Converter(Math.round(Math.random()*this.canvasW + 2), +20);
+    s.v = (Math.random()* 4) + 1;
+    s.a = (Math.random() * 90) + 45;
+    this.converterArray.push(s);
 }
 
 Engine.prototype.addBlackHole = function(){
