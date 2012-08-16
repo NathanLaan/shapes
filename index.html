@@ -32,8 +32,8 @@ function KeyData(){
 function Shape(ix,iy){
     this.x=ix;
     this.y=iy;
-    this.w=8;
-    this.h=8;
+    this.w=10;
+    this.h=10;
     this.v=1;
     this.a=270;
     this.backgroundColor = "#888";
@@ -99,8 +99,8 @@ extend(Square,Shape);
 function Square(x,y){
     Square.baseConstructor.call(this, x, y);
     this.backgroundColor = "#00f";
-    this.w = 12;
-    this.h = 12;
+    this.w = 10;
+    this.h = 10;
     this.collideOffset = 0;
     //
     // TODO: "Freeze" blocks?
@@ -121,8 +121,9 @@ extend(Hole,Shape);
 function Hole(x,y){
     Hole.baseConstructor.call(this, x, y);
     this.backgroundColor = "#000";
-    this.w = 12;
-    this.h = 12;
+    this.borderColor = "#fff";
+    this.w = 10;
+    this.h = 10;
     this.collideOffset = 0;
 }
 Hole.prototype.draw = function(c){
@@ -133,6 +134,8 @@ Hole.prototype.draw = function(c){
     c.arc(this.x + this.w/2, this.y + this.h/2, this.w/2, 0, 360);
     c.closePath();
     c.fill();
+    c.strokeStyle = this.borderColor;
+    c.stroke();
 }
 
 
@@ -140,8 +143,8 @@ Hole.prototype.draw = function(c){
 function Freezer(x,y){
     Freezer.baseConstructor.call(this, x, y);
     this.backgroundColor = "#0ff";
-    this.w = 14;
-    this.h = 14;
+    this.w = 12;
+    this.h = 12;
     this.collideOffset = 0;
 }
 
@@ -171,9 +174,9 @@ function Engine(c,w,h){
 
 Engine.prototype.gameLoop = function() {
     if(this.isGameOver){
-        this.context.fillStyle = "#fff";
+        this.context.fillStyle = "#000";
         this.context.fillRect(0, 0, this.canvasW, this.canvasH);
-        this.context.strokeStyle = "black";
+        this.context.strokeStyle = "#f00";
         this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
         this.player.backgroundColor = "#f00";
 
@@ -202,7 +205,10 @@ Engine.prototype.gameLoop = function() {
 
         if(this.frame % this.newShapeFrequency < 2){
             var randCheck = Math.random() * 10;
-            if(randCheck < 7){ 
+            if(randCheck < 8){ 
+                this.addAsteroid();
+            }
+            if(randCheck < 3){ 
                 this.addAsteroid();
             }
             if(this.newShapeFrequency > 1){
@@ -220,7 +226,7 @@ Engine.prototype.gameLoop = function() {
             this.addSquare();
         }
         randCheck = Math.random() * 1000;
-        if(randCheck < 5){
+        if(randCheck < 3){
             this.addBlackHole();
         }
 
@@ -257,6 +263,7 @@ Engine.prototype.gameLoop = function() {
             if(blackHoled){
                 s.isBlackHoled = true;
                 s.backgroundColor = "#ee0";
+                //s.v = s.v * 2;
             }
             if(this.player.collide(s)){
                 this.score++;
@@ -283,9 +290,9 @@ Engine.prototype.gameLoop = function() {
             }
         }
 
-        this.context.fillStyle = "#eee";
+        this.context.fillStyle = "#000";
         this.context.fillRect(0, 0, this.canvasW, this.canvasH);
-        this.context.strokeStyle = "black";
+        this.context.strokeStyle = "#00f";
         this.context.strokeRect(0, 0, this.canvasW, this.canvasH);
     }
 
@@ -302,8 +309,8 @@ Engine.prototype.gameLoop = function() {
         s.draw(this.context);
     }
     this.player.draw(this.context);
-    var text = "SCORE: " + this.score
-        + " FRAME: " + this.frame;
+    var text = "SCORE: " + this.score;
+        //+ " FRAME: " + this.frame
         // + (" FREQ: " + this.newShapeFrequency)
         // + (" DIFF: " + this.getDifficulty())
         // + " "
@@ -312,7 +319,7 @@ Engine.prototype.gameLoop = function() {
         // + (this.keyData.keyDownL ? "L" : "")
         // + (this.keyData.keyDownR ? "R" : "");
     this.context.font = "12px Helvetica";
-    this.context.fillStyle = "#00f";
+    this.context.fillStyle = "#fff";
     this.context.fillText(text, 5, this.canvasH-5);
 
 }
@@ -326,6 +333,8 @@ Engine.prototype.addAsteroid = function(){
     //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
     var s = new Shape(Math.round(Math.random()*this.canvasW + 2), +20);
     s.v = (Math.random()* 3) + 1;
+    s.w = (Math.random() * 10) + (Math.random() * 10);
+    s.h = (Math.random() * 10) + (Math.random() * 10);
     this.asteroidArray.push(s);
 }
 
