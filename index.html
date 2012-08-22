@@ -109,7 +109,7 @@ function Player(x,y){
     Player.baseConstructor.call(this, x, y);
     this.isInvincible = false;
     this.invincibleCounter = 0; //100?
-    this.isShootingBullets = false;
+    this.isShootingBullets = true;
 }
 Player.prototype.draw = function(c){
     this.drawTriangle(c);
@@ -120,13 +120,32 @@ Player.prototype.draw = function(c){
 extend(Bullet,Shape);
 function Bullet(x,y){
     Bullet.baseConstructor.call(this, x, y);
-    this.w = 3;
+    this.w = 4;
     this.h = 3;
     this.backgroundColor = "#f00";
     this.borderColor = "#f00";
 }
-Player.prototype.draw = function(c){
+Bullet.prototype.draw = function(c){
     this.drawTriangle(c);
+}
+Bullet.prototype.collide = function(shape){
+    //http://www.gamedev.net/page/resources/_/technical/game-programming/collision-detection-r735
+    // add "tollerance" of +/- y pixels based on velocity
+    var l1 = this.x + this.collideOffset;
+    var l2 = shape.x + this.collideOffset;
+    var r1 = l1 + this.w - 2*this.collideOffset;
+    var r2 = l2 + shape.w - 2*this.collideOffset;
+    
+    var t1 = this.y - this.v + this.collideOffset;
+    var t2 = shape.y + this.collideOffset;
+    var b1 = t1 + this.h + this.v - 2*this.collideOffset;
+    var b2 = t2 + shape.h - 2*this.collideOffset;
+    
+    if(b1 < t2) return false;
+    if(t1 > b2) return false;
+    if(r1 < l2) return false;
+    if(l1 > r2) return false;
+    return true;
 }
 
 
@@ -209,6 +228,7 @@ function Engine(c,w,h){
     this.freezerArray = new Array();
     this.blackHoleArray = new Array();
     this.converterArray = new Array();
+    this.bulletArray = new Array();
     this.isRunning = false;
     this.isGameOver = false;
     this.engineLoop;
@@ -217,6 +237,7 @@ function Engine(c,w,h){
 
 //Reset the engine to starting conditions
 Engine.prototype.init = function(){
+    this.score = 0;
     this.isGameOver = false;
     this.frame = 0;
     this.player.x = Math.round(this.canvasW/2);
@@ -228,6 +249,7 @@ Engine.prototype.init = function(){
     this.freezerArray.length = 0;
     this.blackHoleArray.length = 0;
     this.converterArray.length = 0;
+    this.bulletArray.length = 0;
     this.newShapeFrequency = 100;
     this.addAsteroid();
     this.startEngine();
@@ -354,6 +376,27 @@ Engine.prototype.gameLoop = function() {
             }
         }
 
+        for(var i=0; i<this.bulletArray.length;i++){
+            var s = this.bulletArray[i];    
+            if(s.y > 0){
+                s.y -= s.v;
+            }else{
+                this.bulletArray.splice(i,1);
+            }
+            for(var ai=0; ai<this.asteroidArray.length;ai++){
+                var a = this.asteroidArray[ai];
+                if(s.collide(a)){
+                    this.bulletArray.splice(i,1);
+                    this.asteroidArray.splice(ai,1);
+                    break;
+                }
+            }
+        }
+
+        if(this.player.isShootingBullets){
+            this.addBullet();
+        }
+
 //
 // Not working!
 //
@@ -402,7 +445,7 @@ Engine.prototype.gameLoop = function() {
             if(frozen){
                 if(!s.isBlackHoled){
                     s.isFrozen = true;
-                    s.backgroundColor = "#0ee";   
+                    //s.backgroundColor = "#0ee";   
                 }
             }
             if(blackHoled){
@@ -464,6 +507,10 @@ Engine.prototype.gameLoop = function() {
         s = this.asteroidArray[i];    
         s.draw(this.context);
     }
+    for(i=0;i<this.bulletArray.length;i++){
+        s = this.bulletArray[i];    
+        s.draw(this.context);
+    }
     this.player.draw(this.context);
     var text = "SCORE: " + this.score;
         //+ " FRAME: " + this.frame
@@ -489,7 +536,8 @@ Engine.prototype.addAsteroid = function(){
     //var s = new Shape(Math.round(Math.random()*this.canvasW + 10), -10);
     var s = new Shape(Math.round(Math.random()*this.canvasW + 2), +20);
     s.v = (Math.random()* 3) + 1;
-    s.a = (Math.random() * 90) + 45;
+    //s.a = (Math.random() * 90) + 45;
+    s.a = 90;
     s.w = (Math.random() * 12) + (Math.random() * 10);
     s.h = (Math.random() * 12) + (Math.random() * 10);
     this.asteroidArray.push(s);
@@ -502,6 +550,12 @@ Engine.prototype.addSquare = function(){
     s.v = (Math.random()* 3) + 1;
     s.a = (Math.random() * 90) + 45;
     this.squareArray.push(s);
+}
+
+Engine.prototype.addBullet = function(){
+    var s = new Bullet(this.player.x + this.player.w/2 - 2, this.player.y - 2);
+    s.v = 5;
+    this.bulletArray.push(s);
 }
 
 Engine.prototype.addFreezer = function(){
