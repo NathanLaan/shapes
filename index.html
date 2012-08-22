@@ -251,6 +251,7 @@ Engine.prototype.init = function(){
     this.converterArray.length = 0;
     this.bulletArray.length = 0;
     this.newShapeFrequency = 100;
+    //this.newShapeFrequency = 50;
     this.addAsteroid();
     this.startEngine();
     this.isRunning = true;
@@ -538,8 +539,8 @@ Engine.prototype.addAsteroid = function(){
     s.v = (Math.random()* 3) + 1;
     //s.a = (Math.random() * 90) + 45;
     s.a = 90;
-    s.w = (Math.random() * 12) + (Math.random() * 10);
-    s.h = (Math.random() * 12) + (Math.random() * 10);
+    s.w = (Math.random() * 15) + (Math.random() * 15) + 5;
+    s.h = (Math.random() * 15) + (Math.random() * 15) + 5;
     this.asteroidArray.push(s);
 }
 
@@ -554,7 +555,7 @@ Engine.prototype.addSquare = function(){
 
 Engine.prototype.addBullet = function(){
     var s = new Bullet(this.player.x + this.player.w/2 - 2, this.player.y - 2);
-    s.v = 5;
+    s.v = 7;
     this.bulletArray.push(s);
 }
 
