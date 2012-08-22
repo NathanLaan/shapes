@@ -37,7 +37,7 @@ function Shape(ix,iy){
     this.v=1;
     this.a=270;
     this.backgroundColor = "#444";
-    this.borderColor = "111";
+    this.borderColor = "#111";
     this.collideOffset = 2;
 }
 Shape.prototype.collide = function(shape){
@@ -90,19 +90,47 @@ Shape.prototype.drawTriangle = function(c){
     c.stroke();
     c.closePath();
 }
+Shape.prototype.drawRect = function(c){
+    c.fillStyle = this.backgroundColor;
+    c.fillRect(this.x, this.y, this.w, this.h);
+}
+Shape.prototype.drawRectStroke = function(c){
+    c.fillStyle = this.backgroundColor;
+    c.strokeStyle = this.borderColor;
+    c.lineWidth = 1;
+    c.fillRect(this.x, this.y, this.w, this.h);
+    c.strokeRect(this.x, this.y, this.w, this.h);
+}
 
+
+// Player
 extend(Player,Shape);
 function Player(x,y){
     Player.baseConstructor.call(this, x, y);
     this.isInvincible = false;
     this.invincibleCounter = 0; //100?
+    this.isShootingBullets = false;
 }
 Player.prototype.draw = function(c){
     this.drawTriangle(c);
 }
 
 
+// Bullet
+extend(Bullet,Shape);
+function Bullet(x,y){
+    Bullet.baseConstructor.call(this, x, y);
+    this.w = 3;
+    this.h = 3;
+    this.backgroundColor = "#f00";
+    this.borderColor = "#f00";
+}
+Player.prototype.draw = function(c){
+    this.drawTriangle(c);
+}
 
+
+// Square ("Fuel")
 extend(Square,Shape);
 function Square(x,y){
     Square.baseConstructor.call(this, x, y);
@@ -114,14 +142,11 @@ function Square(x,y){
     this.isBlackHoled = false;
 }
 Square.prototype.draw = function(c){
-    c.fillStyle = this.backgroundColor;
-    //c.strokeStyle = this.borderColor;
-    //c.lineWidth = 1;
-    c.fillRect(this.x, this.y, this.w, this.h);
-    //c.strokeRect(this.x, this.y, this.w, this.h);
+    this.drawRect(c);
 }
 
 
+// Black Hole
 extend(Hole,Shape);
 function Hole(x,y){
     Hole.baseConstructor.call(this, x, y);
@@ -147,7 +172,7 @@ function Freezer(x,y){
     this.collideOffset = 0;
 }
 Freezer.prototype.draw = function(c){
-    this.drawCircleStroke(c);
+    this.drawRectStroke(c);
 }
 
 
@@ -161,7 +186,7 @@ function Converter(x,y){
     this.collideOffset = 0;
 }
 Converter.prototype.draw = function(c){
-    this.drawCircleStroke(c);
+    this.drawRectStroke(c);
 }
 
 
