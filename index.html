@@ -113,6 +113,29 @@ function Player(x,y){
 }
 Player.prototype.draw = function(c){
     this.drawTriangle(c);
+    if(this.isShootingBullets){
+        c.fillStyle = this.backgroundColor;
+        c.strokeStyle = this.borderColor;
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(this.x, this.y + this.h);
+        c.lineTo(this.x - 3, this.y + this.h - 5);
+        c.lineTo(this.x - 6, this.y + this.h);
+        c.lineTo(this.x, this.y + this.h);
+        c.fill();
+        c.stroke();
+        c.closePath();
+
+
+        c.beginPath();
+        c.moveTo(this.x + this.w, this.y + this.h);
+        c.lineTo(this.x + this.w + 3, this.y + this.h - 5);
+        c.lineTo(this.x + this.w + 6, this.y + this.h);
+        c.lineTo(this.x + this.w, this.y + this.h);
+        c.fill();
+        c.stroke();
+        c.closePath();
+    }
 }
 
 
@@ -554,9 +577,19 @@ Engine.prototype.addSquare = function(){
 }
 
 Engine.prototype.addBullet = function(){
-    var s = new Bullet(this.player.x + this.player.w/2 - 2, this.player.y - 2);
-    s.v = 7;
-    this.bulletArray.push(s);
+    // var s = new Bullet(this.player.x + this.player.w/2 - 2, this.player.y - 2);
+    // s.v = 7;
+    // this.bulletArray.push(s);
+    this.addBulletX2();
+}
+
+Engine.prototype.addBulletX2 = function(){
+    var s1 = new Bullet(this.player.x - 5, this.player.y + this.player.h - 9);
+    var s2 = new Bullet(this.player.x + this.player.w + 1, this.player.y + this.player.h - 9);
+    s1.v = 7;
+    s2.v = 7;
+    this.bulletArray.push(s1);
+    this.bulletArray.push(s2);
 }
 
 Engine.prototype.addFreezer = function(){
